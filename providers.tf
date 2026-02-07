@@ -20,3 +20,27 @@ terraform {
 provider "aws" {
   region = var.region
 }
+
+
+data "aws_eks_cluster_auth" "dev" {
+  name = module.eks_dev.cluster_name
+}
+
+provider "kubernetes" {
+  host                   = module.eks_dev.cluster_endpoint
+  cluster_ca_certificate = base64decode(
+    module.eks_dev.cluster_certificate_authority_data
+  )
+  token = data.aws_eks_cluster_auth.dev.token
+}
+
+provider "helm" {
+  kubernetes {
+    host                   = module.eks_dev.cluster_endpoint
+    cluster_ca_certificate = base64decode(
+      module.eks_dev.cluster_certificate_authority_data
+    )
+    token = data.aws_eks_cluster_auth.dev.token
+  }
+}
+
